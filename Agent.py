@@ -48,18 +48,26 @@ class Agent:
     # Incoming Message
     def receive(self, msg):
         # Check Timestamp
-        if self._timestamp < msg.get_timestamp() or msg.get_type() == 'TERMINATE':
+        if self._timestamp < msg.get_timestamp():
             # Add into queue
             self._queue.append(msg)
-        else:
-            print('failed')
+        #else:
+        #    print('failed')
 
     # Handle message in queue
     def _handle_message(self):
         # Dequeue message from queue
         if len(self._queue) is not 0 and self._converged is not True:
+
             # Pop message
             msg = self._queue.pop()
+            #print(msg.get_timestamp() != self._timestamp)
+
+            # Ignore message if it's an outdated timestamp :)
+            if msg.get_timestamp() < self._timestamp and msg.get_timestamp() != self._timestamp:
+                #print(msg.get_timestamp())
+                #print(self._timestamp)
+                return []
 
             if msg.get_type() == 'FB_CPA':
                 # print('Event: FB_CPA')
@@ -71,6 +79,7 @@ class Agent:
 
             elif msg.get_type() == 'FB_ESTIMATE':
                 # print('Event: FB_ESTIMATE')
+
                 return self._handle_estimate(msg)
 
             elif msg.get_type() == 'NEW_SOLUTION':
@@ -114,6 +123,9 @@ class Agent:
         # save estimate
         self._estimate_value += msg.get_payload()
         if (self._estimate_value + self._current_cpa.get_cost()) >= self._B:
+            # print(self._estimate_value)
+            # print(self._current_cpa)
+            print('Backtracking due to estimate')
             return self._assign_cpa()
 
     # Talk about this one tomorrow!!!
@@ -280,6 +292,7 @@ class Agent:
             self._CPA_SOLUTION = copy.deepcopy(self._current_cpa)
             self._B = self._current_cpa.get_cost()
 
+            # print(self._CPA_SOLUTION)
             msg_list = []  # broadcast to all agents updated B
             for x in range(1, self._total_agents + 1):
                 msg = Message('NEW_SOLUTION', self._timestamp, self._id, x, self._CPA_SOLUTION)
@@ -300,7 +313,7 @@ class Agent:
         # clear estimates
         # Check if in first agent
         self._clear_estimates()
-
+        # print('[Agent-%d] BACKTRACK: %s'%(self._id,str(self._current_cpa)))
         if self._id == 1:
             # Broadcast Terminate
             msg_list = []
@@ -312,5 +325,6 @@ class Agent:
 
         else:
             # send CPA_MSG message to A_i-1
+            # print('Agent-%d %s'%(self._id,self._current_assignment))
             msg = Message('CPA_MSG', self._timestamp, self._id, self._id - 1, self._received_cpa)
             return [msg]

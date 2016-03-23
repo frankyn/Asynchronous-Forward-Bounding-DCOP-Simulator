@@ -1,4 +1,3 @@
-
 class Timestamp:
     def __init__(self, total_agents):
         self._total_agents = total_agents
@@ -40,16 +39,33 @@ class Timestamp:
 
         return True
 
+    def __lte__(self, incoming):
+        return True
+
+    # Check if all positions are equal
+    def __eq__(self, incoming):
+        if len(self) is not len(incoming):
+            return False
+        for x in range(len(self)):
+            if self[x] is not incoming[x]:
+                return False
+
+        return True
+
+    def __ne__(self, incoming):
+        return not(self == incoming)
+
     # Check if this timestamp is greater than incoming
     def __gt__(self, incoming):
         # Check timestamps are of equal size
-        if len(self) != len(incoming):
+        if len(incoming) != len(self):
             return False
 
         return not self < incoming
 
     def __str__(self):
         return str(self._timestamp)
+
 
 # Unit Test
 if __name__ == "__main__":
@@ -58,11 +74,7 @@ if __name__ == "__main__":
 
     timestamp1.increase_timestamp(1)
 
-    if timestamp1 > timestamp2:
+    if timestamp1 > timestamp2 or timestamp1 is timestamp2:
         print('Greater')
     else:
         print('Smaller')
-
-
-
-

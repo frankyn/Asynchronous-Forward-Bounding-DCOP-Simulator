@@ -7,9 +7,9 @@ def main():
     agent_n = 5
 
     # Predefined hashing function
-    hash_1_4 = {'R,R': 16, 'R,B': 47, 'B,R': 89, 'B,B': 10}
+    hash_1_4 = {'R,R': 16, 'R,B': 89, 'B,R': 47, 'B,B': 10}
     hash_2_4 = {'R,R': 92, 'R,B': 27, 'B,R': 91, 'B,B': 100}
-    hash_2_5 = {'R,R': 87, 'R,B': 82, 'B,R': 22, 'B,B': 73}
+    hash_2_5 = {'R,R': 87, 'R,B': 22, 'B,R': 82, 'B,B': 73}
     hash_3_4 = {'R,R': 21, 'R,B': 28, 'B,R': 86, 'B,B': 71}
 
     # Domain per agent
@@ -50,7 +50,7 @@ def main():
 
     # converged(boolean)
     converged = False  # Hasn't converged yet
-
+    cpa_msg_count = 0
     while not converged:
         for agent in agent_list:
             if agent is None:  # Skip first index
@@ -67,13 +67,14 @@ def main():
                 if msg.get_type() == 'TERMINATE':
                     converged = True  # We have converged.
                 print("[Agent: %d] %s"%(agent._id, msg))
-
+                if msg.get_type() == 'CPA_MSG' and msg.get_destination() > msg.get_source():
+                    cpa_msg_count += 1
                 agent_list[int(msg.get_destination())].receive(msg)
 
     # Print out result
     # Select first Agent
     print(agent_list[agent_n].solution())
-
+    print(cpa_msg_count)
 
 # Execute Simulator
 if __name__ == "__main__":
